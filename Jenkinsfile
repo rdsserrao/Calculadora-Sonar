@@ -2,8 +2,8 @@ pipeline {
     agent any
           /*  parameters {
                 string(name: 'Imagem', defaultValue: 'jenkins1', description: 'Nome da imagem')
-            }
-           */ stages {
+            } */
+            stages {
                 stage('Clone') {
                     steps {
                         git url: 'https://github.com/rdsserrao/Calculadora-Sonar.git'
@@ -55,8 +55,8 @@ pipeline {
                         sh 'docker tag $Imagem localhost:8082/$Imagem:1.0'
                         sh 'docker push localhost:8082/$Imagem:1.0'
                     }   
-                }
-              */  stage ('Criar artefato no raw') {
+                } */
+                stage ('Criar artefato no raw') {
                     steps {
                         withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh 'curl -v --user $USER:$PASS --upload-file calc.jar http://nexus:8081/repository/raw_repo/'
