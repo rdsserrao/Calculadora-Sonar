@@ -11,32 +11,36 @@ pipeline {
                 }
                 stage ('Criar .jar') {
                     steps {
-                        sh 'javac CalculadoraFinal.java'
-                        sh 'jar cfe calc.jar CalculadoraFinal CalculadoraFinal.class'
+                        sh 'javac *.java'
+                        sh 'jar cfe calc.jar ./Calculadora-Sonar *.class'
                     }   
                 }
                 stage('SonarQube analysis') {
+                        environment { scannerHome = tool 'sonarqube' }
                     steps {
-				        def scannerHome = tool 'sonarqube';
-                        withSonarQubeEnv('sonarqube') {
-                            -D sonar.login=f5f103028120cd31b483291025b64a8a640aa10c \
-					        -D sonar.projectKey=Teste \
-					        -D sonar.exclusions=vendor/**,resources/**,**/*.java \
-					        -D sonar.host.url=http://sonar:9000/"
-                        }
-                    }
-                }
-                stage("Quality Gate") {
-                    steps {
-                        timeout(time: 1, unit: 'HOURS') {
-					    def qualitygate = waitForQualityGate()
-					        if (qualitygate.status != "OK") {
-					        error "Pipeline aborted due to quality gate coverage failure: ${qualitygate.status}"
+                            withSonarQubeEnv('sonarqube') {
+                                    sh "${scannerHome}/bin/sonar-scanner \
+                                    -D sonar.login=f5f103028120cd31b483291025b64a8a640aa10c \
+                                    -D sonar.projectKey=Teste \
+                                    -D sonar.java.binaries=/var/jenkins_home/workspace/Calculadora-Sonar \
+                                    -D sonar.java.source=11 \
+                                    -D sonar.host.url=http://sonar:9000/"
                             }
                         }
                     }
+        stage("Quality Gate") {
+            steps {
+			script {
+                timeout(time: 1, unit: 'HOURS') {
+					def qualitygate = waitForQualityGate()
+					if (qualitygate.status != "OK") {
+					error "Pipeline aborted due to quality gate coverage failure: ${qualitygate.status}"
+					}
                 }
-               /* stage ('Criar Imagem') {
+            }
+        }
+    }
+              /* stage ('Criar Imagem') {
                     steps {
                         sh 'docker rmi -f $Imagem'
                         sh 'docker build -t $Imagem .'
@@ -52,13 +56,13 @@ pipeline {
                         sh 'docker push localhost:8082/$Imagem:1.0'
                     }   
                 }
-                stage ('Criar artefato no raw') {
+              */  stage ('Criar artefato no raw') {
                     steps {
                         withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh 'curl -v --user $USER:$PASS --upload-file calc.jar http://nexus:8081/repository/raw_repo/'
                         }
                     }   
-                } */
+                }
                 stage('Clean') {
                     steps {
                         cleanWs()
