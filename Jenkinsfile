@@ -1,9 +1,9 @@
 pipeline {
     agent any
-            parameters {
+          /*  parameters {
                 string(name: 'Imagem', defaultValue: 'jenkins1', description: 'Nome da imagem')
             }
-            stages {
+           */ stages {
                 stage('Clone') {
                     steps {
                         git url: 'https://github.com/rdsserrao/Calculadora-Sonar.git'
